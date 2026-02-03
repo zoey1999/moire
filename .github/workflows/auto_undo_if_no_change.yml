@@ -7,11 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # 必须获取最近两次提交才能比对
+          fetch-depth: 2
 
       - name: Compare and Undo
         run: |
-          # 比对最后一次提交 (HEAD) 和上一次 (HEAD~1) 的文件差异
           if git diff --quiet HEAD~1 HEAD; then
             echo "检测到内容无变化，正在撤回无效 Commit..."
             git config user.name "GitHub Action"

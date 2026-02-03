@@ -5,6 +5,11 @@
 	import { config } from '../../moire.config';
 
 	let { children } = $props();
+
+	$effect(() => {
+		document.body.classList.add(config.theme);
+		return () => document.body.classList.remove(config.theme);
+	});
 </script>
 
 <svelte:head>

@@ -1,112 +1,170 @@
 <script lang="ts">
-    import { format } from 'date-fns';
-    import type { PageData } from '../../routes/$types';
-    import { createMemoList } from '$lib/memo.svelte';
-    
-    let { data, config }: { data: PageData, config: any } = $props();
-    const memoList = createMemoList(() => data, config);
+  import {config} from '../../../moire.config';
+  import {createMemoList} from '$lib/memo.svelte';
+  import type {PageData} from '../../routes/$types';
+  import {marked} from 'marked';
+  import {format} from 'date-fns';
+  import pixelIdle from '$lib/assets/pixel-idle.png';
+  import pixelRun from '$lib/assets/pixel-run.png';
+
+  let {data}: {data: PageData} = $props();
+  const memoList = createMemoList(() => data, config);
+
+  let isMoving = $state(false);
+  let scrollTimeout: ReturnType<typeof setTimeout>;
+
+  function handleScroll() {
+    isMoving = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      isMoving = false;
+    }, 150);
+  }
 </script>
 
-<div class="min-h-screen bg-[#fff1e8] text-[#1d2b53] font-mono p-4 image-pixelated relative overflow-hidden">
-    <!-- Background Decor -->
-    <div class="fixed top-10 left-10 text-4xl opacity-20 rotate-12 pointer-events-none">☁️</div>
-    <div class="fixed top-20 right-20 text-4xl opacity-20 -rotate-6 pointer-events-none">⭐</div>
-    <div class="fixed bottom-20 left-20 text-4xl opacity-20 rotate-6 pointer-events-none">🍄</div>
-    
-    <div class="max-w-3xl mx-auto relative z-10">
-        <!-- Header -->
-        <header class="mb-12 text-center p-6 border-4 border-[#1d2b53] bg-[#ffec27] shadow-[8px_8px_0px_#1d2b53] rounded-sm">
-            <h1 class="text-3xl md:text-5xl font-black uppercase mb-4 tracking-widest text-[#1d2b53] drop-shadow-sm flex items-center justify-center gap-4">
-                <span class="animate-bounce inline-block">👾</span> {config.title} <span class="animate-bounce inline-block animation-delay-200">👾</span>
-            </h1>
-            
-            <div class="bg-white border-2 border-[#1d2b53] p-3 inline-block rounded-sm">
-                <div class="flex justify-center flex-wrap gap-4 text-xs md:text-sm font-bold uppercase">
-                    <div class="flex items-center gap-1">👤 <span class="text-[#f83800]">{config.author}</span></div>
-                    <div class="flex items-center gap-1">🪙 <span class="text-[#ffa300]">{data.memos.length}</span></div>
-                    <div class="flex items-center gap-1">📅 <span class="text-[#29adff]">{new Date().getFullYear()}</span></div>
-                </div>
-            </div>
-            
-            {#if memoList.selectedTag}
-                <div class="mt-6">
-                    <button class="bg-[#ff004d] text-white border-2 border-[#1d2b53] px-4 py-2 text-xs uppercase font-bold hover:scale-105 transition-transform shadow-[4px_4px_0px_#1d2b53]" onclick={() => memoList.selectTag(null)}>
-                        Key Item: #{memoList.selectedTag} <span class="ml-2">✕</span>
-                    </button>
-                </div>
-            {/if}
-        </header>
+<svelte:window onscroll={handleScroll} />
 
-        <!-- Memos -->
-        <div class="space-y-10">
-            {#each Object.entries(memoList.groupedMemos) as [dateKey, memos]}
-                <div>
-                    <div class="inline-block bg-[#29adff] border-2 border-[#1d2b53] px-3 py-1 text-white font-bold text-sm mb-4 shadow-[4px_4px_0px_#1d2b53] -rotate-1">
-                        Level {format(new Date(dateKey + 'T00:00:00'), 'MM.dd')}
-                    </div>
-                    
-                    <div class="space-y-6">
-                        {#each memos as memo}
-                            <div class="flex gap-4 items-start group">
-                                <div class="w-10 h-10 shrink-0 bg-white border-2 border-[#1d2b53] flex items-center justify-center text-xl shadow-[4px_4px_0px_rgba(29,43,83,0.2)] rounded-sm group-hover:-translate-y-1 transition-transform">
-                                    {['🍎', '⭐', '💎', '🔑', '❤️', '🧱'][Math.floor(Math.random() * 6)]}
-                                </div>
-                                
-                                <div class="flex-1 bg-white border-2 border-[#1d2b53] p-5 relative rounded-sm shadow-[6px_6px_0px_#c2c3c7]">
-                                    <div class="absolute -top-3 right-4 bg-[#ffccaa] border-2 border-[#1d2b53] px-2 py-0.5 text-[10px] font-bold uppercase rounded-sm">
-                                        TIME {format(memo.date, 'HH:mm')}
-                                    </div>
+<div
+  class="min-h-screen max-w-3xl mx-auto p-4 sm:p-8 selection:bg-[var(--text-color)]/20 selection:text-[var(--bg-color)]"
+>
+  <header class="mb-12 flex items-end justify-between border-b-2 border-[var(--text-color)] px-2 pb-4">
+    <div>
+      <h1
+        class="text-4xl text-[var(--accent-color)] drop-shadow-[2px_2px_0_rgba(181,137,0,0.2)] uppercase tracking-wider"
+      >
+        {config.title}
+      </h1>
+      <p class="mt-2 text-[var(--text-color)] font-bold opacity-80">Version 1.0.1 [Light]</p>
+    </div>
+    <div class="text-right text-xs text-[var(--text-color)]">
+      <p>SYSTEM: ONLINE</p>
+      <p class="text-[var(--accent-color)]">BATTERY: 100%</p>
+    </div>
+  </header>
 
-                                    <div class="prose prose-sm max-w-none font-bold text-[#1d2b53]
-                                        prose-headings:text-[#ff004d] prose-headings:font-black prose-a:text-[#29adff] prose-a:no-underline hover:prose-a:underline
-                                        [&_img]:border-4 [&_img]:border-[#1d2b53] [&_img]:pixel-render [&_img]:rounded-sm [&_img]:shadow-[4px_4px_0px_#1d2b53]">
-                                        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-                                        {@html memo.content}
-                                    </div>
-                                    
-                                    <div class="mt-4 flex flex-wrap gap-2 pt-3 border-t-2 border-dashed border-[#c2c3c7]">
-                                        {#each memo.tags || [] as tag}
-                                            <button 
-                                                class="text-[10px] font-bold uppercase bg-[#00e436] text-[#1d2b53] border border-[#1d2b53] px-2 py-1 hover:bg-[#ffec27] transition-colors shadow-[2px_2px_0px_#1d2b53]"
-                                                onclick={() => memoList.selectTag(tag)}
-                                            >
-                                                #{tag}
-                                            </button>
-                                        {/each}
-                                    </div>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            {/each}
+  <div class="mx-auto grid grid-cols-1 gap-8 xl:grid-cols-2">
+    {#each memoList.visibleMemos as memo}
+      <article
+        class="window-frame relative flex flex-col bg-[var(--card-bg)] border-2 border-[var(--border-color)] shadow-[6px_6px_0_0_rgba(0,43,54,0.15)] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_0_rgba(0,43,54,0.15)] transition-all duration-200"
+      >
+        <div
+          class="flex items-center justify-between border-b-2 border-[var(--border-color)] bg-[var(--bg-color)] px-2 py-1 text-xs"
+        >
+          <span class="text-[var(--border-color)] font-bold truncate max-w-[70%]"
+            >{config.author}://{format(new Date(memo.date), 'yyyy/MM/dd')}</span
+          >
+          <div class="flex gap-1.5">
+            <button
+              aria-label="Minimize"
+              class="flex h-3 w-3 items-center justify-center border border-[var(--border-color)] bg-[var(--accent-color)] hover:brightness-110 text-white font-bold leading-none shadow-[1px_1px_0_0_var(--border-color)] active:translate-y-[1px] active:shadow-none transition-all"
+            ></button>
+            <button
+              aria-label="Close"
+              class="flex h-3 w-3 items-center justify-center border border-[var(--border-color)] bg-[#dc322f] hover:brightness-110 text-white font-bold leading-none shadow-[1px_1px_0_0_var(--border-color)] active:translate-y-[1px] active:shadow-none transition-all"
+            ></button>
+          </div>
         </div>
 
-        {#if memoList.visibleCount < data.memos.length}
-            <div class="mt-16 text-center">
-                <button 
-                    class="bg-[#83769c] text-white border-4 border-[#1d2b53] px-8 py-3 uppercase font-black text-lg hover:bg-[#ffccaa] hover:text-[#1d2b53] transition-colors shadow-[8px_8px_0px_#1d2b53] active:translate-y-1 active:shadow-[4px_4px_0px_#1d2b53]"
-                    onclick={memoList.loadMore}
-                >
-                    ▼ Load Next Stage
-                </button>
-            </div>
-        {/if}
+        <div class="flex-1 p-4">
+          <div
+            class="prose prose-sm leading-relaxed max-w-none
+                        text-[var(--text-color)]
+                        prose-headings:text-[var(--border-color)] prose-headings:font-bold
+                        prose-a:text-[var(--accent-color)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-[var(--accent-color)]
+                        prose-code:bg-[var(--bg-color)] prose-code:text-[var(--accent-color)] prose-code:px-1 prose-code:border prose-code:border-[var(--text-color)]/20
+                        prose-blockquote:border-l-4 prose-blockquote:border-[#859900] prose-blockquote:bg-[#f9f2f4] prose-blockquote:text-[#657b83]"
+          >
+            {@html marked.parse(memo.content)}
+          </div>
+        </div>
 
-        <footer class="mt-20 text-center text-xs font-bold uppercase text-[#1d2b53]/50 pb-10">
-            <p>Ready Player One • Credit 00</p>
-        </footer>
+        <div
+          class="mt-auto border-t-2 border-[var(--border-color)] bg-[var(--bg-color)] px-2 py-1 text-[10px] text-[var(--text-color)] flex justify-between items-center"
+        >
+          <span class="font-bold text-[var(--accent-color)]">{format(new Date(memo.date), 'HH:mm:ss')}</span>
+          <div class="flex flex-wrap gap-1 justify-end">
+            {#if memo.tags}
+              {#each memo.tags as tag}
+                <span
+                  class="bg-[var(--accent-color)] text-white px-1 border border-[var(--border-color)] shadow-[1px_1px_0_0_var(--border-color)]"
+                  >#{tag}</span
+                >
+              {/each}
+            {/if}
+          </div>
+        </div>
+
+        <div
+          class="pointer-events-none absolute inset-0 z-50 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMSIgZmlsbD0iYmxhY2siIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-30 mix-blend-multiply"
+        ></div>
+      </article>
+    {/each}
+  </div>
+
+  {#if memoList.visibleMemos.length < memoList.filteredMemos.length}
+    <div class="my-12 text-center">
+      <button
+        onclick={memoList.loadMore}
+        class="bg-[var(--bg-color)] px-6 py-2 text-[var(--border-color)] font-bold border-2 border-[var(--border-color)] shadow-[4px_4px_0_0_var(--text-color)] hover:shadow-[2px_2px_0_0_var(--text-color)] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none transition-all group"
+      >
+        <span class="group-hover:text-[var(--accent-color)] transition-colors">[ LOAD MORE ]</span>
+      </button>
     </div>
+  {/if}
+
+  <div class="fixed bottom-8 right-8 z-50 hidden md:block">
+    <div
+      class="relative h-16 w-16 image-pixelated transition-transform duration-100"
+      class:translate-y-[-2px]={isMoving}
+    >
+      {#if isMoving}
+        <img
+          src={pixelRun}
+          alt="Running Avatar"
+          class="h-full w-full object-contain drop-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
+        />
+      {:else}
+        <img
+          src={pixelIdle}
+          alt="Idle Avatar"
+          class="h-full w-full object-contain drop-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
+        />
+      {/if}
+    </div>
+    <div
+      class="absolute -top-12 -right-4 whitespace-nowrap bg-[var(--card-bg)] border-2 border-[var(--border-color)] px-2 py-1 text-[10px] text-[var(--border-color)] shadow-[2px_2px_0_0_rgba(0,0,0,0.1)] opacity-0 transition-opacity duration-300"
+      class:opacity-100={!isMoving}
+    >
+      I'm watching you.
+    </div>
+  </div>
 </div>
 
 <style>
-    .image-pixelated {
-        image-rendering: pixelated;
-    }
-    :global(.pixel-render) {
-        image-rendering: pixelated;
-    }
-    .animation-delay-200 {
-        animation-delay: 200ms;
-    }
+  /* Custom Scrollbar for Webkit */
+  :global(::-webkit-scrollbar) {
+    width: 16px;
+    background-color: var(--bg-color);
+    border-left: 2px solid var(--text-color);
+  }
+
+  :global(::-webkit-scrollbar-thumb) {
+    background-color: var(--text-color);
+    border: 2px solid var(--bg-color);
+    box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  :global(::-webkit-scrollbar-thumb:hover) {
+    background-color: var(--accent-color);
+  }
+
+  :global(::-webkit-scrollbar-track) {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==');
+    opacity: 0.1;
+  }
+
+  .image-pixelated {
+    image-rendering: pixelated;
+  }
 </style>
